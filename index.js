@@ -3,23 +3,25 @@ Date.prototype.daysTo = function(anotherDate) {
     const currentDateTimestamp = this.getTime();
     const anotherDateTimestamp = anotherDate.getTime();
 
-    const result = (anotherDateTimestamp - currentDateTimestamp) / (1000 * 60 * 60 * 24);
+    const result = (this - anotherDate) / (1000 * 60 * 60 * 24);
 
-    return Math.abs(result);
+    return Math.floor(Math.abs(result));
 };
 
-const d1 = new Date('2024-01-01');
-const d2 = new Date('2024-01-10');
+const d1 = new Date('2024-01-01T10:12:01');
+const d2 = new Date('2024-01-02');
 console.log('Task1');
 console.log(d1.daysTo(d2));
 
 //Task 2
-const orderByTotal = (input) => {
+const orderByTotal = (input, sorting) => {
     const inputWithTotal = input.map(x => {
         return ({...x, Total: x.amount * x.quantity})
     });
 
-    return inputWithTotal.sort((a, b) => b.Total - a.Total);
+    const ascSortingQuery = (a, b) => a.Total - b.Total;
+    const descSortingQuery = (a, b) =>  b.Total - a.Total;
+    return inputWithTotal.sort(sorting === "asc" ? ascSortingQuery : descSortingQuery);
 }
 
 console.log('Task2');
@@ -34,38 +36,75 @@ console.log(orderByTotal([
 
 //Task3
 const projectObject = (sourceJson, prototypeObject) => {
-    const sourceObject = sourceJson;
-
-    const projectedObject = {};
+    const result = {};
 
     for (const key in prototypeObject) {
-        if (sourceObject.hasOwnProperty(key)) {
-            if (prototypeObject[key] === null) {
-                projectedObject[key] = sourceObject[key];
-            } else if (typeof sourceObject[key] === 'object' && typeof prototypeObject[key] === 'object') {
-                projectedObject[key] = projectObject(sourceObject[key], prototypeObject[key]);
+        if (prototypeObject.hasOwnProperty(key) && sourceJson.hasOwnProperty(key)) {
+            const sourceValue = sourceJson[key];
+            const prototypeValue = prototypeObject[key];
+
+            if (typeof sourceValue === 'object' && sourceValue !== null && 
+                typeof prototypeValue === 'object' && prototypeValue !== null) {
+                result[key] = projectObject(sourceValue, prototypeValue);
+            } else if (typeof sourceValue === typeof prototypeValue || sourceValue === null) {
+                result[key] = sourceValue;
             }
         }
     }
 
-    return projectedObject;
+    return result;
 }
 
+// const src = {
+//     prop11: {
+//         prop21: 21,
+//         prop22: {
+//             prop31: 31,
+//             prop32: 32
+//         }
+//     },
+//     prop12: 12
+// }
+// const proto = {
+//     prop11: {
+//         prop22: null
+//     }
+// }
+
 const src = {
-    prop11: {
-        prop21: 21,
-        prop22: {
-            prop31: 31,
-            prop32: 32
-        }
+    prop22: null,
+    prop33: {
+        prop331: 1,
+        prop332:2
     },
-    prop12: 12
-}
-const proto = {
     prop11: {
-        prop22: null
+        prop111: "value",
+        prop112: {
+            prop112: null
+        }
     }
-}
+};
+
+const proto = {
+    prop11:
+        {
+            prop22: null,
+            prop111: {
+                prop111: null
+            },
+            prop112: null
+        },
+    prop33: {},
+    prop22: 2
+};
+
+// const result = {
+//     prop22: null,
+//     prop33: {},
+//     prop11: {prop112: {
+//             prop112: null
+//         }}
+// };
 
 console.log("Task3");
 console.log(projectObject(src, proto));
